@@ -5,29 +5,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#000000">
-  <meta name="description"
-    content="Block Party Realty: an implementation of a Blockchain-based digital real estate purchasing and selling management system">
+  <meta name="description" content="Block Party Realty: an implementation of a Blockchain-based digital real estate purchasing and selling management system">
   <title>Block Party Realty</title>
   <script defer="defer" src="/static/main.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
 
 <body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
-  <a href="{{ url_for('index') }}">Home</a>
-  {% if current_user.is_anonymous %}
-  <a href="{{ url_for('login') }}">Login</a>
-  {% else %}
-  <a href="{{ url_for('logout') }}">Logout</a>
-  {% endif %}
-
-  {% block content %}
-  <h1>Hi, {{ current_user.username }}!</h1>
-  {% for post in posts %}
-  <div>
-    <p>{{ post.author.username }} says: <b>{{ post.body }}</b></p>
-  </div>
-  {% endfor %}
-  {% endblock %}
   <div id="app"></div>
 </body>
 
