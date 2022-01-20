@@ -1,4 +1,5 @@
-from flask import render_template, flash, redirect, url_for, request
+from pprint import pprint
+from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app
 from app.forms import LoginForm
 from flask_login import current_user, login_user, logout_user, login_required
@@ -33,6 +34,15 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+@app.route('/api/permit-application', methods=['POST'])
+@login_required
+def create_permit_application():
+    if 'file' not in request.files:
+        return 'WTF'
+
+    return jsonify({ 'processed': True })
 
 
 def get_next_page_or(default):

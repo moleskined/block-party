@@ -21,6 +21,18 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
 
+class PermitApplication(db.Model):
+    index = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    previous_hash = db.Column(db.String(512), index=True)
+    hash = db.Column(db.String(512), unique=True, nullable=False, index=True)
+    property_address = db.Column(db.String(256), nullable=False)
+    building_design = db.Column(db.LargeBinary, nullable=False)
+    permit_application_id = db.Column(db.String(23), nullable=False)
+    seller_details = db.Column(db.String(256), nullable=False)
+    seller_licence_number = db.Column(db.String(23), nullable=False)
+
+
 class Role(Enum):
     NONE = -1
     SELLER = 1
