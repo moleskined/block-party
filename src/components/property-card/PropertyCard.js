@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import React from "react";
 
-export class PropertyCard extends React.Component {
+export default class PropertyCard extends React.Component {
   render() {
     const { property } = this.props;
 
