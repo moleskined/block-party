@@ -36,6 +36,12 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.route('/api/permit-application', methods=['GET'])
+@login_required
+def get_permit_application():
+    pass
+
+
 @app.route('/api/permit-application', methods=['POST'])
 @login_required
 def create_permit_application():
