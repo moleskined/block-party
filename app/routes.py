@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app, db
 from app.forms import LoginForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, PermitApplication
+from app.models import AuthorisationBlock, User, PermitApplication
 from werkzeug.urls import url_parse
 from datetime import date, datetime
 
@@ -50,6 +50,17 @@ def get_permit_application():
     return jsonify(list(permits_mapped))
 
 
+@app.route('/api/permit-application/<hash>/authority', methods=['PUT'])
+@login_required
+def set_approval(hash):
+    content = request.get_json()
+    block = AuthorisationBlock(datetime.utcnow(), \
+        hash, content['approved'], content['property_address'])
+    db.session.add(block)
+    db.session.commit()
+    return jsonify({'hash': block.hash})
+
+
 @app.route('/api/permit-application', methods=['POST'])
 @login_required
 def create_permit_application():
@@ -64,7 +75,7 @@ def create_permit_application():
     db.session.add(permit_application)
     db.session.commit()
 
-    return jsonify({'created_permit_application_id': permit_application.hash})
+    return jsonify({'hash': permit_application.hash})
 
 
 def get_next_page_or(default):

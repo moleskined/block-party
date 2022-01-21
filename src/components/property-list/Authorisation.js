@@ -5,7 +5,9 @@ import {
   Box,
 } from "@mui/material";
 import axios from "axios";
-import { PropertyCard } from "../property-card";
+import PropertyCard from "./PropertyCard";
+
+const URL = '/api/permit-application';
 
 export default class Authorisation extends React.Component {
   constructor(props) {
@@ -16,13 +18,12 @@ export default class Authorisation extends React.Component {
   }
 
   componentDidMount() {
-    this.loadPropertiest();
+    this.loadProperties();
   }
 
-  loadPropertiest() {
-    const url = '/api/permit-application';
+  loadProperties() {
     const config = {};
-    axios.get(url).then(response => {
+    axios.get(URL).then(response => {
       const properties = [...response.data];
       this.setState({ properties })
     });

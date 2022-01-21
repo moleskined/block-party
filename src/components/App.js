@@ -3,8 +3,7 @@ import { render } from "react-dom";
 import CssBaseline from '@mui/material/CssBaseline';
 import { TopBar } from './top-bar';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { PropertyList } from './property-list';
-import { Authorisation } from './authorisation';
+import { PropertyList, Authorisation } from './property-list';
 
 const lightTheme = createTheme({
   palette: {
