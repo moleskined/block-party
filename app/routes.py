@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app, db
 from app.forms import LoginForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import AuthorisationBlock, User, PermitApplication
+from app.models import AuthorisationBlock, BuyerBlock, User, PermitApplication
 from werkzeug.urls import url_parse
 from datetime import date, datetime
 
@@ -96,12 +96,14 @@ def get_next_page_or(default):
         return next_page
     return url_for(default)
 
+
 @app.route('/api/properties/authorised', methods=['GET'])
 @login_required
 def get_authorised_properties():
-    query = db.session.query(PermitApplication, AuthorisationBlock)\
-        .outerjoin(AuthorisationBlock, AuthorisationBlock.previous_hash == PermitApplication.hash)\
-            .filter(AuthorisationBlock.approval_status).all()
+    query = db.session.query(PermitApplication, AuthorisationBlock, BuyerBlock)\
+        .join(AuthorisationBlock, AuthorisationBlock.previous_hash == PermitApplication.hash)\
+        .outerjoin(BuyerBlock, BuyerBlock.previous_hash == AuthorisationBlock.hash)\
+        .filter(AuthorisationBlock.approval_status).all()
     results = map(lambda p: {
         'timestamp': p['AuthorisationBlock'].timestamp,
         'previous_hash': p['AuthorisationBlock'].previous_hash,
@@ -110,3 +112,84 @@ def get_authorised_properties():
         'hash': p['AuthorisationBlock'].hash,
     }, query)
     return jsonify(list(results))
+
+
+@app.route('/api/properties/<hash>/loan-applications', methods=['POST'])
+@login_required
+def create_loan_application(hash):
+    pass
+
+
+@app.route('/api/properties/with-loan-applicaitons', methods=['GET'])
+@login_required
+def get_properties_with_loan_applications():
+    pass
+
+
+@app.route('/api/properties/loan-applications/<hash>', methods=['PUT'])
+@login_required
+def approve_loan_application(hash):
+    pass
+
+
+@app.route('/api/v2/permit_applications', methods=['GET'])
+@login_required
+def get_permit_blocks():
+    query = db.session.query(
+        PermitApplication,
+        AuthorisationBlock,
+        BuyerBlock,
+    ).outerjoin(
+        AuthorisationBlock, AuthorisationBlock.previous_hash == PermitApplication.hash
+    ).outerjoin(
+        BuyerBlock, BuyerBlock.previous_hash == AuthorisationBlock.hash
+    ).all()
+    results = map(lambda p: 
+        [
+            {
+                '__type': 'PermitApplication',
+                'timestamp': p['PermitApplication'].timestamp,
+                'previous_hash': p['PermitApplication'].previous_hash,
+                'hash': p['PermitApplication'].hash,
+                'property_address': p['PermitApplication'].property_address,
+                'seller_details': p['PermitApplication'].seller_details,
+                'seller_licence_number': p['PermitApplication'].seller_licence_number,
+            },
+            get_authorisation_block(p),
+            get_buyers_block(p),
+        ], query)
+    return jsonify(list(results))
+
+
+def get_authorisation_block(p):
+    result = { '__type': 'AuthorisationBlock' }
+    try:
+        block = p['AuthorisationBlock']
+        result['timestamp'] = block.timestamp
+        result['previous_hash'] = block.previous_hash
+        result['property_address'] = block.property_address
+        result['approval_status'] = block.approval_status
+        result['hash'] = block.hash
+    except Exception:
+        pass
+    return result
+
+
+def get_buyers_block(p):
+    result = { '__type': 'BuyerBlock' }
+    try:
+        block = p['BuyerBlock']
+        result['timestamp'] = block.timestamp
+        result['previous_hash'] = block.previous_hash
+        result['full_name'] = block.full_name
+        result['dob'] = block.dob
+        result['current_address'] = block.current_address
+        result['contact_number'] = block.contact_number
+        result['employer_name'] = block.employer_name
+        result['annual_income'] = block.annual_income
+        result['property_address'] = block.property_address
+        result['loan_amount'] = block.loan_amount
+        result['hash'] = block.hash
+    except Exception:
+        pass
+    return result
