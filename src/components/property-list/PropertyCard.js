@@ -6,8 +6,6 @@ import {
   CardMedia,
 } from "@mui/material";
 import React from "react";
-import axios from "axios";
-
 
 export default class PropertyCard extends React.Component {
   constructor(props) {
@@ -16,9 +14,18 @@ export default class PropertyCard extends React.Component {
       mode,
     } = this.props;
 
-    if (mode === 'authority') {
-      this.approve = this.approve.bind(this);
-      this.disapprove = this.disapprove.bind(this);
+    switch (mode) {
+      case 'authority':
+        this.approve = this.approve.bind(this);
+        this.disapprove = this.disapprove.bind(this);
+        this.setPropertyApproval = props.setPropertyApproval.bind(this);
+        break;
+
+      case 'buyer':
+        break;
+    
+      default:
+        break;
     }
   }
 
@@ -34,23 +41,13 @@ export default class PropertyCard extends React.Component {
     this.setPropertyApproval(property.hash, property.property_address, false);
   }
 
-  setPropertyApproval(id, propertyAddress, approved) {
-    const payload = {
-      id,
-      approved,
-      property_address: propertyAddress,
-    };
-
-    axios.put(`/api/permit-application/${id}/authority`, payload).then(res => { ;
-      console.log(res.data);
-    });
-  }
-
   render() {
     const {
       property,
       mode
     } = this.props;
+
+    const approvalStatus = property.approval_status === null ? 'Pending' : Boolean(property.approval_status);
 
     return (
       <Card>
@@ -66,6 +63,9 @@ export default class PropertyCard extends React.Component {
             {property.seller_details}
             {property.seller_licence_number}
           </Typography>
+            <div>
+              Approval: {String(approvalStatus)}
+            </div>
         </CardContent>
         {mode === "seller" && (
           <CardActions>
@@ -73,7 +73,7 @@ export default class PropertyCard extends React.Component {
             <Button size="small">Learn More</Button> */}
           </CardActions>
         )}
-        {mode === "authority" && (
+        {mode === "authority" && property.approval_status === null && (
           <CardActions>
             <Button size="small" onClick={this.disapprove}>Disapprove</Button>
             <Button size="small" onClick={this.approve}>Approve</Button>

@@ -3,7 +3,11 @@ import { render } from "react-dom";
 import CssBaseline from '@mui/material/CssBaseline';
 import { TopBar } from './top-bar';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { PropertyList, Authorisation } from './property-list';
+import {
+  PropertyList,
+  Authorisation,
+  Buyers,
+} from './property-list';
 
 const lightTheme = createTheme({
   palette: {
@@ -31,7 +35,7 @@ class App extends React.Component {
           <TopBar />
           {roleId === 1 && <PropertyList></PropertyList>}
           {roleId === 2 && <Authorisation></Authorisation>}
-          {roleId === 3 && <p>Buyer</p>}
+          {roleId === 3 && <Buyers></Buyers>}
           {roleId === 4 && <p>Bank</p>}
         </ThemeProvider>
       </React.StrictMode>

@@ -15,6 +15,8 @@ export default class Authorisation extends React.Component {
     this.state = {
       properties: [],
     };
+
+    this.setPropertyApproval = this.setPropertyApproval.bind(this);
   }
 
   componentDidMount() {
@@ -26,6 +28,19 @@ export default class Authorisation extends React.Component {
     axios.get(URL).then(response => {
       const properties = [...response.data];
       this.setState({ properties })
+    });
+  }
+
+  setPropertyApproval(id, propertyAddress, approved) {
+    const payload = {
+      id,
+      approved,
+      property_address: propertyAddress,
+    };
+
+    axios.put(`${URL}/${id}/authority`, payload).then(res => {
+      console.log(res.data);
+      return this.loadProperties();
     });
   }
 
@@ -44,6 +59,7 @@ export default class Authorisation extends React.Component {
                   <PropertyCard
                     property={p}
                     mode="authority"
+                    setPropertyApproval={this.setPropertyApproval}
                   ></PropertyCard>
                 </Grid>))
             }

@@ -36,16 +36,27 @@ def logout():
     return redirect(url_for('index'))
 
 
+def parse_permit_status(p):
+    try:
+        approval_status = p['AuthorisationBlock'].approval_status
+    except Exception:
+        approval_status = None
+    return approval_status
+
+
 @app.route('/api/permit-application', methods=['GET'])
 @login_required
 def get_permit_application():
-    permits = db.session.query(PermitApplication).all()
+    permits = db.session.query(PermitApplication, AuthorisationBlock)\
+        .outerjoin(AuthorisationBlock, AuthorisationBlock.previous_hash == PermitApplication.hash).all()
+
     permits_mapped = map(lambda p: {
-        'timestamp': p.timestamp,
-        'hash': p.hash,
-        'property_address': p.property_address,
-        'seller_details': p.seller_details,
-        'seller_licence_number': p.seller_licence_number,
+        'timestamp': p['PermitApplication'].timestamp,
+        'hash': p['PermitApplication'].hash,
+        'property_address': p['PermitApplication'].property_address,
+        'seller_details': p['PermitApplication'].seller_details,
+        'seller_licence_number': p['PermitApplication'].seller_licence_number,
+        'approval_status': parse_permit_status(p),
     }, permits)
     return jsonify(list(permits_mapped))
 
@@ -54,8 +65,8 @@ def get_permit_application():
 @login_required
 def set_approval(hash):
     content = request.get_json()
-    block = AuthorisationBlock(datetime.utcnow(), \
-        hash, content['approved'], content['property_address'])
+    block = AuthorisationBlock(datetime.utcnow(),
+                               hash, content['approved'], content['property_address'])
     db.session.add(block)
     db.session.commit()
     return jsonify({'hash': block.hash})
@@ -71,7 +82,8 @@ def create_permit_application():
     seller_details = request.form['sellerDetails']
     seller_licence_number = request.form['sellerLicenceNumber']
 
-    permit_application = PermitApplication(datetime.utcnow(), 0, property_address, seller_details, file_data, seller_licence_number)
+    permit_application = PermitApplication(datetime.utcnow(
+    ), 0, property_address, seller_details, file_data, seller_licence_number)
     db.session.add(permit_application)
     db.session.commit()
 
@@ -83,3 +95,18 @@ def get_next_page_or(default):
     if next_page and url_parse(next_page).netloc == "":
         return next_page
     return url_for(default)
+
+@app.route('/api/properties/authorised', methods=['GET'])
+@login_required
+def get_authorised_properties():
+    query = db.session.query(PermitApplication, AuthorisationBlock)\
+        .outerjoin(AuthorisationBlock, AuthorisationBlock.previous_hash == PermitApplication.hash)\
+            .filter(AuthorisationBlock.approval_status).all()
+    results = map(lambda p: {
+        'timestamp': p['AuthorisationBlock'].timestamp,
+        'previous_hash': p['AuthorisationBlock'].previous_hash,
+        'property_address': p['AuthorisationBlock'].property_address,
+        'approval_status': p['AuthorisationBlock'].approval_status,
+        'hash': p['AuthorisationBlock'].hash,
+    }, query)
+    return jsonify(list(results))
