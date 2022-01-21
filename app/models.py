@@ -53,6 +53,28 @@ class PermitApplication(db.Model):
         return sha.hexdigest()
 
 
+class AuthorisationBlock(db.Model):
+    timestamp = db.Column(db.DateTime, nullable=False)
+    previous_hash = db.Column(db.String(50), index=True)
+    property_address = db.Column(db.String(256), nullable=False)
+    approval_status = db.Column(db.SmallInteger, nullable=False)
+    hash = db.Column(db.String(50), primary_key=True)
+
+    def __init__(self, timestamp: datetime, previous_hash: str, approval_status: bool, property_address: str) -> None:
+        self.timestamp = timestamp
+        self.previous_hash = previous_hash
+        self.property_address = property_address
+        self.approval_status = approval_status
+        self.hash = self.hash_block()
+
+    def hash_block(self) -> str:
+        sha = hasher.sha256()
+        txt = str(self.timestamp) + str(self.previous_hash) + \
+            str(self.property_address) + str(1 if self.approval_status else 0)
+        sha.update(txt.encode('utf-8'))
+        return sha.hexdigest()
+
+
 class Role(Enum):
     NONE = -1
     SELLER = 1
