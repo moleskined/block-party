@@ -144,9 +144,8 @@ class NewPermitApplicationDialogue extends React.Component {
       f.append('sellerLicenceNumber', sellerLicenceNumber);
 
       axios.post(url, f, config).then((response) => {
-        console.log(response.data);
+        return this.handleNewPropertyClose();
       });
-      return this.handleNewPropertyClose();
     }
 
     this.setState({ activeStep: activeStep + 1 });

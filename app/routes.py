@@ -39,7 +39,15 @@ def logout():
 @app.route('/api/permit-application', methods=['GET'])
 @login_required
 def get_permit_application():
-    pass
+    permits = db.session.query(PermitApplication).all()
+    permits_mapped = map(lambda p: {
+        'timestamp': p.timestamp,
+        'hash': p.hash,
+        'property_address': p.property_address,
+        'seller_details': p.seller_details,
+        'seller_licence_number': p.seller_licence_number,
+    }, permits)
+    return jsonify(list(permits_mapped))
 
 
 @app.route('/api/permit-application', methods=['POST'])
