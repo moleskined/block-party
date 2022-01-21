@@ -83,7 +83,10 @@ class PropertyList extends React.Component {
             {
               [...properties].map((p, i) => (
                 <Grid key={i} item xs={12} sm={6} md={4}>
-                  <PropertyCard property={p}></PropertyCard>
+                  <PropertyCard
+                    property={p}
+                    mode="seller"
+                  ></PropertyCard>
                 </Grid>))
             }
           </Grid>

@@ -9,7 +9,10 @@ import React from "react";
 
 export default class PropertyCard extends React.Component {
   render() {
-    const { property } = this.props;
+    const {
+      property,
+      mode
+    } = this.props;
 
     return (
       <Card>
@@ -19,17 +22,25 @@ export default class PropertyCard extends React.Component {
           image="/static/img/smol.jpeg"
         ></CardMedia>
         <CardContent>
-          <Typography gutterBottom variant="h5" component="div">{ property.property_address }</Typography>
+          <Typography gutterBottom variant="h5" component="div">{property.property_address}</Typography>
           <Typography variant="body2" color="text.secondary">
-            { property.timestamp }
-            { property.seller_details }
-            { property.seller_licence_number }
+            {property.timestamp}
+            {property.seller_details}
+            {property.seller_licence_number}
           </Typography>
         </CardContent>
-        <CardActions>
-          <Button size="small">Share</Button>
-          <Button size="small">Learn More</Button>
-        </CardActions>
+        {mode === "seller" && (
+          <CardActions>
+            <Button size="small">Share</Button>
+            <Button size="small">Learn More</Button>
+          </CardActions>
+        )}
+        {mode === "authority" && (
+          <CardActions>
+            <Button size="small">Disapprove</Button>
+            <Button size="small">Approve</Button>
+          </CardActions>
+        )}
       </Card>
     );
   }
