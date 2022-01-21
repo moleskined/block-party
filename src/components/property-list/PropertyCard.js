@@ -32,22 +32,25 @@ export default class PropertyCard extends React.Component {
   approve(e) {
     e.preventDefault();
     const { property } = this.props;
-    this.setPropertyApproval(property.hash, property.property_address, true);
+    const permitApplication = property['PermitApplication'];
+    this.setPropertyApproval(permitApplication.hash, permitApplication.property_address, true);
   }
 
   disapprove(e) {
     e.preventDefault();
     const { property } = this.props;
-    this.setPropertyApproval(property.hash, property.property_address, false);
+    const permitApplication = property['PermitApplication'];
+    this.setPropertyApproval(permitApplication.hash, permitApplication.property_address, false);
   }
 
   render() {
     const {
+      mode,
       property,
-      mode
     } = this.props;
 
-    const approvalStatus = property.approval_status === null ? 'Pending' : Boolean(property.approval_status);
+    // const approvalStatus = property.approval_status === null ? 'Pending' : Boolean(property.approval_status);
+    const permitApplication = property['PermitApplication'];
 
     return (
       <Card>
@@ -57,14 +60,15 @@ export default class PropertyCard extends React.Component {
           image="/static/img/smol.jpeg"
         ></CardMedia>
         <CardContent>
-          <Typography gutterBottom variant="h5" component="div">{property.property_address}</Typography>
+          <Typography gutterBottom variant="h5" component="div">{permitApplication.property_address}PermitApplication</Typography>
           <Typography variant="body2" color="text.secondary">
-            {property.timestamp}
-            {property.seller_details}
-            {property.seller_licence_number}
+            {permitApplication.timestamp}PermitApplication
+            {permitApplication.seller_details}PermitApplication
+            {permitApplication.seller_licence_number}PermitApplication
           </Typography>
             <div>
-              Approval: {String(approvalStatus)}
+              %APPROVAL STATUS%
+              {/* Approval: {String(approvalStatus)} */}
             </div>
         </CardContent>
         {mode === "seller" && (
@@ -73,7 +77,7 @@ export default class PropertyCard extends React.Component {
             <Button size="small">Learn More</Button> */}
           </CardActions>
         )}
-        {mode === "authority" && property.approval_status === null && (
+        {mode === "authority" && !property['AuthorisationBlock'] && (
           <CardActions>
             <Button size="small" onClick={this.disapprove}>Disapprove</Button>
             <Button size="small" onClick={this.approve}>Approve</Button>

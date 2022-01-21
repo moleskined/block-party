@@ -6,6 +6,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import PropertyCard from "./PropertyCard";
+import { buildChain } from "../utils";
 
 const URL = '/api/permit-application';
 
@@ -24,11 +25,12 @@ export default class Authorisation extends React.Component {
   }
 
   loadProperties() {
-    const config = {};
-    axios.get(URL).then(response => {
-      const properties = [...response.data];
+    const url = '/api/v2/permit_applications';
+    axios.get(url).then(response => {
+      const data = [...response.data];
+      const properties = data.map(d => buildChain(d))
       this.setState({ properties })
-    });
+    })
   }
 
   setPropertyApproval(id, propertyAddress, approved) {

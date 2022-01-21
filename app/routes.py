@@ -162,23 +162,23 @@ def get_permit_blocks():
 
 
 def get_authorisation_block(p):
-    result = { '__type': 'AuthorisationBlock' }
     try:
         block = p['AuthorisationBlock']
+        result = { '__type': 'AuthorisationBlock' }
         result['timestamp'] = block.timestamp
         result['previous_hash'] = block.previous_hash
         result['property_address'] = block.property_address
         result['approval_status'] = block.approval_status
         result['hash'] = block.hash
     except Exception:
-        pass
+        result={}
     return result
 
 
 def get_buyers_block(p):
-    result = { '__type': 'BuyerBlock' }
     try:
         block = p['BuyerBlock']
+        result = { '__type': 'BuyerBlock' }
         result['timestamp'] = block.timestamp
         result['previous_hash'] = block.previous_hash
         result['full_name'] = block.full_name
@@ -191,5 +191,5 @@ def get_buyers_block(p):
         result['loan_amount'] = block.loan_amount
         result['hash'] = block.hash
     except Exception:
-        pass
+        result={}
     return result

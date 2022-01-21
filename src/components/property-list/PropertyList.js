@@ -10,6 +10,7 @@ import AddIcon from '@mui/icons-material/Add';
 import NewPermitApplicationDialogue from "./NewPermitApplicationDialogue";
 import axios from "axios";
 import PropertyCard from "./PropertyCard";
+import { buildChain } from "../utils";
 
 class PropertyList extends React.Component {
   constructor(props) {
@@ -44,10 +45,10 @@ class PropertyList extends React.Component {
   }
 
   loadPropertiest() {
-    const url = '/api/permit-application';
-    const config = {};
+    const url = '/api/v2/permit_applications';
     axios.get(url).then(response => {
-      const properties = [...response.data];
+      const data = [...response.data];
+      const properties = data.map(d => buildChain(d))
       this.setState({ properties })
     })
   }
