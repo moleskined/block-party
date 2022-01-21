@@ -15,7 +15,6 @@ const lightTheme = createTheme({
 
 class App extends React.Component {
   render() {
-
     return (
       <React.StrictMode>
         <ThemeProvider theme={lightTheme}>

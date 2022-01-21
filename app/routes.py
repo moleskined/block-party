@@ -1,10 +1,10 @@
-from pprint import pprint
 from flask import render_template, flash, redirect, url_for, request, jsonify
-from app import app
+from app import app, db
 from app.forms import LoginForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User
+from app.models import User, PermitApplication
 from werkzeug.urls import url_parse
+from datetime import date, datetime
 
 
 @app.route('/')
@@ -39,10 +39,18 @@ def logout():
 @app.route('/api/permit-application', methods=['POST'])
 @login_required
 def create_permit_application():
-    if 'file' not in request.files:
-        return 'WTF'
+    file = request.files['file']
+    file_data: bytes = file.read()
 
-    return jsonify({ 'processed': True })
+    property_address = request.form['propertyAddress']
+    seller_details = request.form['sellerDetails']
+    seller_licence_number = request.form['sellerLicenceNumber']
+
+    permit_application = PermitApplication(datetime.utcnow(), 0, property_address, seller_details, file_data, seller_licence_number)
+    db.session.add(permit_application)
+    db.session.commit()
+
+    return jsonify({'created_permit_application_id': permit_application.hash})
 
 
 def get_next_page_or(default):

@@ -1,7 +1,10 @@
+from datetime import datetime
+import hashlib as hasher
 from enum import Enum
 from app import db, login
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+import base64
 
 
 class User(UserMixin, db.Model):
@@ -22,15 +25,32 @@ class User(UserMixin, db.Model):
 
 
 class PermitApplication(db.Model):
-    index = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, nullable=False)
-    previous_hash = db.Column(db.String(512), index=True)
-    hash = db.Column(db.String(512), unique=True, nullable=False, index=True)
+    previous_hash = db.Column(db.String(50), index=True)
     property_address = db.Column(db.String(256), nullable=False)
-    building_design = db.Column(db.LargeBinary, nullable=False)
-    permit_application_id = db.Column(db.String(23), nullable=False)
     seller_details = db.Column(db.String(256), nullable=False)
+    building_design = db.Column(db.LargeBinary, nullable=False)
     seller_licence_number = db.Column(db.String(23), nullable=False)
+    hash = db.Column(db.String(50), primary_key=True)
+
+    def __init__(self, timestamp: datetime, previous_hash: str, property_address: str,
+                 seller_details: str, building_design: bytes, seller_licence_number: str) -> None:
+        self.timestamp = timestamp
+        self.previous_hash = previous_hash
+        self.property_address = property_address
+        self.seller_details = seller_details
+        self.building_design = building_design
+        self.seller_licence_number = seller_licence_number
+        self.hash = self.hash_block()
+
+    def hash_block(self):
+        sha = hasher.sha256()
+        base64_bytes = base64.b64encode(self.building_design)
+        base64_message = base64_bytes.decode('utf-8')
+        txt = str(self.timestamp) + str(self.previous_hash) + str(self.property_address) + str(
+            self.seller_details) + str(self.building_design) + base64_message + str(self.seller_licence_number)
+        sha.update(txt.encode('utf-8'))
+        return sha.hexdigest()
 
 
 class Role(Enum):
