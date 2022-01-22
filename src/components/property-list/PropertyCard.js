@@ -89,7 +89,7 @@ export default class PropertyCard extends React.Component {
             <Button
               size="small"
               onClick={this.apply}
-              disabled={ property.BuyerBlock }
+              disabled={ property.BuyerBlock && true }
             >Apply</Button> | STATUS OF BANK APPROVAL | STATUS OF SELLER APPROVAL
           </CardActions>
         )}
