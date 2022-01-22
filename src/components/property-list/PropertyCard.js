@@ -18,12 +18,13 @@ export default class PropertyCard extends React.Component {
       case 'authority':
         this.approve = this.approve.bind(this);
         this.disapprove = this.disapprove.bind(this);
-        this.setPropertyApproval = props.setPropertyApproval.bind(this);
+        this.setPropertyApproval = this.props.setPropertyApproval.bind(this);
         break;
 
       case 'buyer':
+        this.apply = this.props.apply.bind(this);
         break;
-    
+
       default:
         break;
     }
@@ -66,10 +67,10 @@ export default class PropertyCard extends React.Component {
             {permitApplication.seller_details}PermitApplication
             {permitApplication.seller_licence_number}PermitApplication
           </Typography>
-            <div>
-              %APPROVAL STATUS%
-              {/* Approval: {String(approvalStatus)} */}
-            </div>
+          <div>
+            %APPROVAL STATUS%
+            {/* Approval: {String(approvalStatus)} */}
+          </div>
         </CardContent>
         {mode === "seller" && (
           <CardActions>
@@ -81,6 +82,15 @@ export default class PropertyCard extends React.Component {
           <CardActions>
             <Button size="small" onClick={this.disapprove}>Disapprove</Button>
             <Button size="small" onClick={this.approve}>Approve</Button>
+          </CardActions>
+        )}
+        {mode === 'buyer' && (
+          <CardActions>
+            <Button
+              size="small"
+              onClick={this.apply}
+              disabled={ property.BuyerBlock }
+            >Apply</Button> | STATUS OF BANK APPROVAL | STATUS OF SELLER APPROVAL
           </CardActions>
         )}
       </Card>

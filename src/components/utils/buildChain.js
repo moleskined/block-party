@@ -13,6 +13,7 @@ const buildChain = (blocks) => {
       result[key] = block;
     }
   });
+  console.log(result);
   return result;
 };
 

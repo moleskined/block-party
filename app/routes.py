@@ -1,3 +1,5 @@
+from decimal import Decimal
+from xmlrpc.client import DateTime
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app, db
 from app.forms import LoginForm
@@ -114,24 +116,6 @@ def get_authorised_properties():
     return jsonify(list(results))
 
 
-@app.route('/api/properties/<hash>/loan-applications', methods=['POST'])
-@login_required
-def create_loan_application(hash):
-    pass
-
-
-@app.route('/api/properties/with-loan-applicaitons', methods=['GET'])
-@login_required
-def get_properties_with_loan_applications():
-    pass
-
-
-@app.route('/api/properties/loan-applications/<hash>', methods=['PUT'])
-@login_required
-def approve_loan_application(hash):
-    pass
-
-
 @app.route('/api/v2/permit_applications', methods=['GET'])
 @login_required
 def get_permit_blocks():
@@ -144,6 +128,56 @@ def get_permit_blocks():
     ).outerjoin(
         BuyerBlock, BuyerBlock.previous_hash == AuthorisationBlock.hash
     ).all()
+    results = map(lambda p: 
+        [
+            {
+                '__type': 'PermitApplication',
+                'timestamp': p['PermitApplication'].timestamp,
+                'previous_hash': p['PermitApplication'].previous_hash,
+                'hash': p['PermitApplication'].hash,
+                'property_address': p['PermitApplication'].property_address,
+                'seller_details': p['PermitApplication'].seller_details,
+                'seller_licence_number': p['PermitApplication'].seller_licence_number,
+            },
+            get_authorisation_block(p),
+            get_buyers_block(p),
+        ], query)
+    return jsonify(list(results))
+
+
+@app.route('/api/v2/buyer_applications/<hash>', methods=['POST'])
+@login_required
+def create_buyer_application(hash):
+    content = request.get_json()
+    block = BuyerBlock(
+        timestamp=datetime.utcnow(),
+        previous_hash=hash,
+        annual_income=Decimal(content['annual_income']),
+        contact_number=content['contact_number'],
+        current_address=content['current_address'],
+        dob=datetime.strptime(content['dob'], '%Y-%m-%d'),
+        employer_name=content['employer_name'],
+        full_name=content['full_name'],
+        loan_amount=Decimal(content['loan_amount']),
+        property_address=content['property_address'],
+    )
+    db.session.add(block)
+    db.session.commit()
+    return jsonify({'hash': block.hash})
+
+
+@app.route('/api/v2/permit_applications/available-for-purchase', methods=['GET'])
+@login_required
+def get_purchaseable_permit_blocks():
+    query = db.session.query(
+        PermitApplication,
+        AuthorisationBlock,
+        BuyerBlock,
+    ).outerjoin(
+        AuthorisationBlock, AuthorisationBlock.previous_hash == PermitApplication.hash
+    ).outerjoin(
+        BuyerBlock, BuyerBlock.previous_hash == AuthorisationBlock.hash
+    ).filter(AuthorisationBlock.approval_status).all()
     results = map(lambda p: 
         [
             {
