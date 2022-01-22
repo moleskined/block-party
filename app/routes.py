@@ -4,7 +4,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app, db
 from app.forms import LoginForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import AuthorisationBlock, BuyerBlock, User, PermitApplication
+from app.models import AuthorisationBlock, BankApproval, BuyerBlock, User, PermitApplication
 from werkzeug.urls import url_parse
 from datetime import date, datetime
 
@@ -116,32 +116,42 @@ def get_authorised_properties():
     return jsonify(list(results))
 
 
-@app.route('/api/v2/permit_applications', methods=['GET'])
-@login_required
-def get_permit_blocks():
-    query = db.session.query(
+def get_query():
+    return db.session.query(
         PermitApplication,
         AuthorisationBlock,
         BuyerBlock,
+        BankApproval,
     ).outerjoin(
         AuthorisationBlock, AuthorisationBlock.previous_hash == PermitApplication.hash
     ).outerjoin(
         BuyerBlock, BuyerBlock.previous_hash == AuthorisationBlock.hash
-    ).all()
-    results = map(lambda p: 
-        [
-            {
-                '__type': 'PermitApplication',
-                'timestamp': p['PermitApplication'].timestamp,
-                'previous_hash': p['PermitApplication'].previous_hash,
-                'hash': p['PermitApplication'].hash,
-                'property_address': p['PermitApplication'].property_address,
-                'seller_details': p['PermitApplication'].seller_details,
-                'seller_licence_number': p['PermitApplication'].seller_licence_number,
-            },
-            get_authorisation_block(p),
-            get_buyers_block(p),
-        ], query)
+    ).outerjoin(
+        BankApproval, BankApproval.previous_hash == BuyerBlock.hash
+    )
+
+
+def mapper(p): return [
+    {
+        '__type': 'PermitApplication',
+        'timestamp': p['PermitApplication'].timestamp,
+        'previous_hash': p['PermitApplication'].previous_hash,
+        'hash': p['PermitApplication'].hash,
+        'property_address': p['PermitApplication'].property_address,
+        'seller_details': p['PermitApplication'].seller_details,
+        'seller_licence_number': p['PermitApplication'].seller_licence_number,
+    },
+    get_authorisation_block(p),
+    get_buyers_block(p),
+    get_bank_approval_block(p),
+]
+
+
+@app.route('/api/v2/permit_applications', methods=['GET'])
+@login_required
+def get_permit_blocks():
+    query = get_query().all()
+    results = map(mapper, query)
     return jsonify(list(results))
 
 
@@ -169,50 +179,54 @@ def create_buyer_application(hash):
 @app.route('/api/v2/permit_applications/available-for-purchase', methods=['GET'])
 @login_required
 def get_purchaseable_permit_blocks():
-    query = db.session.query(
-        PermitApplication,
-        AuthorisationBlock,
-        BuyerBlock,
-    ).outerjoin(
-        AuthorisationBlock, AuthorisationBlock.previous_hash == PermitApplication.hash
-    ).outerjoin(
-        BuyerBlock, BuyerBlock.previous_hash == AuthorisationBlock.hash
-    ).filter(AuthorisationBlock.approval_status).all()
-    results = map(lambda p: 
-        [
-            {
-                '__type': 'PermitApplication',
-                'timestamp': p['PermitApplication'].timestamp,
-                'previous_hash': p['PermitApplication'].previous_hash,
-                'hash': p['PermitApplication'].hash,
-                'property_address': p['PermitApplication'].property_address,
-                'seller_details': p['PermitApplication'].seller_details,
-                'seller_licence_number': p['PermitApplication'].seller_licence_number,
-            },
-            get_authorisation_block(p),
-            get_buyers_block(p),
-        ], query)
+    query = get_query().filter(AuthorisationBlock.approval_status).all()
+    results = map(mapper, query)
     return jsonify(list(results))
+
+
+@app.route('/api/v2/loan_applications', methods=['GET'])
+@login_required
+def get_loan_applications():
+    query = get_query().filter(BuyerBlock.hash).all()
+    results = map(mapper, query)
+    return jsonify(list(results))
+
+@app.route('/api/v2/loan_applications/<hash>', methods=['PUT'])
+@login_required
+def approve_loan_application(hash):
+    content = request.get_json()
+    block = BankApproval(
+        approval_status=content['approval_status'],
+        contact_number=content['contact_number'],
+        current_address=content['current_address'],
+        dob=datetime.strptime(content['dob'], '%Y-%m-%d'),
+        full_name=content['full_name'],
+        previous_hash=content['previous_hash'],
+        timestamp=content['timestamp'],
+    )
+    db.session.add(block)
+    db.session.commit()
+    return jsonify({'hash': block.hash})
 
 
 def get_authorisation_block(p):
     try:
         block = p['AuthorisationBlock']
-        result = { '__type': 'AuthorisationBlock' }
+        result = {'__type': 'AuthorisationBlock'}
         result['timestamp'] = block.timestamp
         result['previous_hash'] = block.previous_hash
         result['property_address'] = block.property_address
         result['approval_status'] = block.approval_status
         result['hash'] = block.hash
     except Exception:
-        result={}
+        result = {}
     return result
 
 
 def get_buyers_block(p):
     try:
         block = p['BuyerBlock']
-        result = { '__type': 'BuyerBlock' }
+        result = {'__type': 'BuyerBlock'}
         result['timestamp'] = block.timestamp
         result['previous_hash'] = block.previous_hash
         result['full_name'] = block.full_name
@@ -225,5 +239,22 @@ def get_buyers_block(p):
         result['loan_amount'] = block.loan_amount
         result['hash'] = block.hash
     except Exception:
-        result={}
+        result = {}
+    return result
+
+
+def get_bank_approval_block(p):
+    try:
+        block = p['BankApproval']
+        result = {'__type': 'BankApproval'}
+        result['hash'] = block.hash
+        result['previous_hash'] = block.previous_hash
+        result['timestamp'] = block.timestamp
+        result['approval_status'] = block.approval_status
+        result['full_name'] = block.full_name
+        result['current_address'] = block.current_address
+        result['contact_number'] = block.contact_number
+        result['dob'] = block.dob
+    except Exception:
+        result = {}
     return result

@@ -113,7 +113,7 @@ class BuyerBlock(db.Model):
         self.property_address = property_address
         self.loan_amount = loan_amount
         self.hash = self.hash_block()
-    
+
     def hash_block(self) -> str:
         sha = hasher.sha256()
         txt = "{}{}{}{}{}{}{}{}{}{}{}".format(
@@ -128,6 +128,42 @@ class BuyerBlock(db.Model):
             self.property_address,
             self.loan_amount,
             self.hash,
+        )
+        sha.update(txt.encode('utf-8'))
+        return sha.hexdigest()
+
+
+class BankApproval(db.Model):
+    hash = db.Column(db.String(50), primary_key=True)
+    previous_hash = db.Column(db.String(50), index=True)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    approval_status = db.Column(db.SmallInteger, nullable=False)
+    full_name = db.Column(db.String(256), nullable=False)
+    current_address = db.Column(db.String(256), nullable=False)
+    contact_number = db.Column(db.String(50), nullable=False)
+    dob = db.Column(db.Date, nullable=False)
+
+    def __init__(self, previous_hash, timestamp, approval_status, full_name, current_address, contact_number, dob) -> None:
+        super().__init__()
+        self.previous_hash = previous_hash
+        self.timestamp = timestamp
+        self.approval_status = approval_status
+        self.full_name = full_name
+        self.current_address = current_address
+        self.contact_number = contact_number
+        self.dob = dob
+        self.hash = self.hash_block()
+
+    def hash_block(self) -> str:
+        sha = hasher.sha256()
+        txt = "{}{}{}{}{}{}{}".format(
+            self.previous_hash,
+            self.timestamp,
+            1 if self.approval_status else 0,
+            self.full_name,
+            self.current_address,
+            self.contact_number,
+            self.dob,
         )
         sha.update(txt.encode('utf-8'))
         return sha.hexdigest()
