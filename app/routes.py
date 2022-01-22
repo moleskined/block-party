@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import List
 from xmlrpc.client import DateTime
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app, db
@@ -174,6 +175,7 @@ def get_loan_applications():
     results = map(mapper, query)
     return jsonify(list(results))
 
+
 @app.route('/api/v2/loan_applications/<hash>', methods=['PUT'])
 @login_required
 def approve_loan_application(hash):
@@ -184,12 +186,58 @@ def approve_loan_application(hash):
         current_address=content['current_address'],
         dob=datetime.strptime(content['dob'], '%Y-%m-%d'),
         full_name=content['full_name'],
-        previous_hash=content['previous_hash'],
-        timestamp=content['timestamp'],
+        previous_hash=hash,
+        timestamp=datetime.utcnow(),
     )
     db.session.add(block)
     db.session.commit()
     return jsonify({'hash': block.hash})
+
+
+@app.route('/api/v2/check_block/authority/<hash>', methods=['GET'])
+def check_block(hash):
+    log = ['Validation results:']
+    passed = new_func(hash, log)
+    color = '\033[92m' if passed else '\033[91m'
+
+    for l in log:
+        print(color + 'LOG:\t' + l + '\033[0m')
+
+    return jsonify({
+        'log': log,
+        'passed': passed,
+    })
+
+
+def new_func(hash: str, log: List):
+    log.append("Looking for existence of block: {}".format(hash))
+    try:
+        block = db.session.query(AuthorisationBlock).filter(
+            AuthorisationBlock.hash == hash).first()
+        log.append("Found block: {}".format(block.hash))
+    except:
+        log.append("Block not found!")
+        return False
+
+    log.append("Block details: timestamp='{}', previous_hash='{}', property_address: '{}', approval_status: '{}'".format(
+        block.timestamp,
+        block.previous_hash,
+        block.property_address,
+        block.approval_status,
+    ))
+
+    calcualted_hash = block.hash_block()
+    log.append(
+        "Running hash function on block returns: {}".format(calcualted_hash))
+
+    try:
+        assert(hash == calcualted_hash)
+        log.append("Hashes match.")
+    except AssertionError:
+        log.append("Hashes do not match! Record could be tampered with.")
+        return False
+
+    return True
 
 
 def get_authorisation_block(p):
