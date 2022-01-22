@@ -99,23 +99,6 @@ def get_next_page_or(default):
     return url_for(default)
 
 
-@app.route('/api/properties/authorised', methods=['GET'])
-@login_required
-def get_authorised_properties():
-    query = db.session.query(PermitApplication, AuthorisationBlock, BuyerBlock)\
-        .join(AuthorisationBlock, AuthorisationBlock.previous_hash == PermitApplication.hash)\
-        .outerjoin(BuyerBlock, BuyerBlock.previous_hash == AuthorisationBlock.hash)\
-        .filter(AuthorisationBlock.approval_status).all()
-    results = map(lambda p: {
-        'timestamp': p['AuthorisationBlock'].timestamp,
-        'previous_hash': p['AuthorisationBlock'].previous_hash,
-        'property_address': p['AuthorisationBlock'].property_address,
-        'approval_status': p['AuthorisationBlock'].approval_status,
-        'hash': p['AuthorisationBlock'].hash,
-    }, query)
-    return jsonify(list(results))
-
-
 def get_query():
     return db.session.query(
         PermitApplication,
@@ -179,7 +162,7 @@ def create_buyer_application(hash):
 @app.route('/api/v2/permit_applications/available-for-purchase', methods=['GET'])
 @login_required
 def get_purchaseable_permit_blocks():
-    query = get_query().filter(AuthorisationBlock.approval_status).all()
+    query = get_query().filter(AuthorisationBlock.approval_status == True).all()
     results = map(mapper, query)
     return jsonify(list(results))
 
@@ -187,7 +170,7 @@ def get_purchaseable_permit_blocks():
 @app.route('/api/v2/loan_applications', methods=['GET'])
 @login_required
 def get_loan_applications():
-    query = get_query().filter(BuyerBlock.hash).all()
+    query = get_query().filter(BuyerBlock.hash != None).all()
     results = map(mapper, query)
     return jsonify(list(results))
 
@@ -213,7 +196,7 @@ def get_authorisation_block(p):
     try:
         block = p['AuthorisationBlock']
         result = {'__type': 'AuthorisationBlock'}
-        result['timestamp'] = block.timestamp
+        result['timestamp'] = block.timestamp.isoformat()
         result['previous_hash'] = block.previous_hash
         result['property_address'] = block.property_address
         result['approval_status'] = block.approval_status
@@ -227,7 +210,7 @@ def get_buyers_block(p):
     try:
         block = p['BuyerBlock']
         result = {'__type': 'BuyerBlock'}
-        result['timestamp'] = block.timestamp
+        result['timestamp'] = block.timestamp.isoformat()
         result['previous_hash'] = block.previous_hash
         result['full_name'] = block.full_name
         result['dob'] = block.dob
@@ -249,7 +232,7 @@ def get_bank_approval_block(p):
         result = {'__type': 'BankApproval'}
         result['hash'] = block.hash
         result['previous_hash'] = block.previous_hash
-        result['timestamp'] = block.timestamp
+        result['timestamp'] = block.timestamp.isoformat()
         result['approval_status'] = block.approval_status
         result['full_name'] = block.full_name
         result['current_address'] = block.current_address

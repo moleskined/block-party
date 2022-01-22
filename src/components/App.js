@@ -7,6 +7,7 @@ import {
   PropertyList,
   Authorisation,
   Buyers,
+  Bank,
 } from './property-list';
 
 const lightTheme = createTheme({
@@ -36,7 +37,7 @@ class App extends React.Component {
           {roleId === 1 && <PropertyList></PropertyList>}
           {roleId === 2 && <Authorisation></Authorisation>}
           {roleId === 3 && <Buyers></Buyers>}
-          {roleId === 4 && <p>Bank</p>}
+          {roleId === 4 && <Bank></Bank>}
         </ThemeProvider>
       </React.StrictMode>
     );
