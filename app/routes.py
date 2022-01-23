@@ -214,6 +214,21 @@ def check_block(hash):
     })
 
 
+@app.route('/api/v2/check_block/bank_approval/<hash>', methods=['GET'])
+def check_bank_approval_block(hash):
+    log = ['Validation results:']
+    passed = new_func(hash, log, "LoanApproval")
+    color = '\033[92m' if passed else '\033[91m'
+
+    for l in log:
+        print(color + 'LOG:\t' + l + '\033[0m')
+
+    return jsonify({
+        'log': log,
+        'passed': passed,
+    })
+
+
 @app.route('/api/v2/loan_applications/<hash>/finalise', methods=['PUT'])
 @login_required
 def set_borrower_approval(hash):
@@ -230,29 +245,47 @@ def set_borrower_approval(hash):
 
 @app.route('/api/v2/permit_applications/<hash>/pdf')
 def get_pdf(hash):
-    permit_application = db.session.query(PermitApplication).filter(PermitApplication.hash == hash).first()
+    permit_application = db.session.query(PermitApplication).filter(
+        PermitApplication.hash == hash).first()
     response = make_response(permit_application.building_design)
     response.headers.set('Content-Type', 'application/pdf')
-    response.headers.set('Content-Disposition', 'attachment', filename='%s.pdf' % "Building Plans")
+    response.headers.set('Content-Disposition', 'attachment',
+                         filename='%s.pdf' % "Building Plans")
     return response
 
 
-def new_func(hash: str, log: List):
+def new_func(hash: str, log: List, type="AuthorisationBlock"):
     log.append("Looking for existence of block: {}".format(hash))
     try:
-        block = db.session.query(AuthorisationBlock).filter(
-            AuthorisationBlock.hash == hash).first()
+        if type == "AuthorisationBlock":
+            block = db.session.query(AuthorisationBlock).filter(
+                AuthorisationBlock.hash == hash).first()
+        else:
+            block = db.session.query(BankApproval).filter(
+                BankApproval.hash == hash).first()
+
         log.append("Found block: {}".format(block.hash))
     except:
         log.append("Block not found!")
         return False
 
-    log.append("Block details: timestamp='{}', previous_hash='{}', property_address: '{}', approval_status: '{}'".format(
-        block.timestamp,
-        block.previous_hash,
-        block.property_address,
-        block.approval_status,
-    ))
+    if type == "AuthorisationBlock":
+        log.append("Block details: timestamp='{}', previous_hash='{}', property_address: '{}', approval_status: '{}'".format(
+            block.timestamp,
+            block.previous_hash,
+            block.property_address,
+            block.approval_status,
+        ))
+    else:
+        log.append("Block details: previous_hash='{}' timestamp='{}' approval_status='{}' full_name='{}' current_address='{}' contact_number='{}' dob='{}'".format(
+            block.previous_hash,
+            block.timestamp,
+            block.approval_status,
+            block.full_name,
+            block.current_address,
+            block.contact_number,
+            block.dob,
+        ))
 
     calcualted_hash = block.hash_block()
     log.append(
