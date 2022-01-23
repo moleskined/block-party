@@ -4,8 +4,13 @@ import {
   CardActions,
   CardContent, Typography,
   CardMedia,
+  TextField,
+  IconButton,
 } from "@mui/material";
+import { Box } from "@mui/system";
 import React from "react";
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import DownloadIcon from '@mui/icons-material/Download';
 
 export default class PropertyCard extends React.Component {
   constructor(props) {
@@ -52,6 +57,8 @@ export default class PropertyCard extends React.Component {
 
     // const approvalStatus = property.approval_status === null ? 'Pending' : Boolean(property.approval_status);
     const permitApplication = property['PermitApplication'];
+    const bankApproval = property['BankApproval'];
+    const buyerBlock = property['BuyerBlock'];
 
     return (
       <Card>
@@ -61,16 +68,63 @@ export default class PropertyCard extends React.Component {
           image="/static/img/smol.jpeg"
         ></CardMedia>
         <CardContent>
-          <Typography gutterBottom variant="h5" component="div">{permitApplication.property_address}PermitApplication</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {permitApplication.timestamp}PermitApplication
-            {permitApplication.seller_details}PermitApplication
-            {permitApplication.seller_licence_number}PermitApplication
-          </Typography>
-          <div>
-            %APPROVAL STATUS%
-            {/* Approval: {String(approvalStatus)} */}
-          </div>
+          <Box sx={{ display: 'flex' }}>
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography gutterBottom variant="h5" component="h2" style={{ minHeight: '4rem' }}>
+                {permitApplication.property_address}
+              </Typography>
+            </Box>
+            <Box>
+              <IconButton aria-label="Download building plans">
+                <DownloadIcon></DownloadIcon>
+              </IconButton>
+            </Box>
+
+          </Box>
+
+          {mode === 'buyer' && <><Typography variant="subtitle1">Loan Application ID</Typography>
+            <Typography variant="body2" color="text.secondary" component="div">
+              <Box style={{ display: 'flex', alignItems: 'center' }}>
+                <Box>
+                  <IconButton disabled={buyerBlock == null} onClick={() => navigator.clipboard.writeText(buyerBlock?.hash)} aria-label="Copy to cliboard">
+                    <AssignmentIcon></AssignmentIcon>
+                  </IconButton>
+                </Box>
+                <Box style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>{buyerBlock?.hash || 'Available after application'}</Box>
+              </Box>
+            </Typography>
+            {
+              buyerBlock && <>
+                <Typography variant="subtitle1">Loan Application Status</Typography>
+                {bankApproval ? <>
+                  <Typography variant="body2" color="text.secondary">{bankApproval.approval_status ? 'Approved by Lender' : 'Rejected by Lender'}</Typography>
+                </> : <>
+                  <Typography variant="body2" color="text.secondary">Pending</Typography>
+                </>}
+              </>
+            }
+          </>}
+
+          {mode === 'seller' && <><Typography variant="subtitle1">Permit Application ID</Typography>
+            <Typography variant="body2" color="text.secondary" component="div">
+              <Box style={{ display: 'flex', alignItems: 'center' }}>
+                <Box>
+                  <IconButton onClick={() => navigator.clipboard.writeText(permitApplication.hash)} aria-label="Copy to cliboard">
+                    <AssignmentIcon></AssignmentIcon>
+                  </IconButton>
+                </Box>
+                <Box style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>{permitApplication.hash}</Box>
+              </Box>
+            </Typography>
+            <Typography variant="subtitle1">Loan Application Status</Typography>
+            {bankApproval ? <>
+              <Typography variant="body2" color="text.secondary">{bankApproval.approval_status ? 'Approved by Lender' : 'Rejected by Lender'}</Typography>
+            </> : <>
+              <Typography variant="body2" color="text.secondary">Pending</Typography>
+            </>}
+          </>}
+
+
         </CardContent>
         {mode === "seller" && (
           <CardActions>
@@ -89,8 +143,8 @@ export default class PropertyCard extends React.Component {
             <Button
               size="small"
               onClick={this.apply}
-              disabled={ property.BuyerBlock && true }
-            >Apply</Button> | STATUS OF BANK APPROVAL | STATUS OF SELLER APPROVAL
+              disabled={property.BuyerBlock && true}
+            >Apply</Button>
           </CardActions>
         )}
       </Card>
