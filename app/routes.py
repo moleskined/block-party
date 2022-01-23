@@ -5,7 +5,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app, db
 from app.forms import LoginForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import AuthorisationBlock, BankApproval, BuyerBlock, User, PermitApplication
+from app.models import AuthorisationBlock, BankApproval, BuyerBlock, SaleFinalisationBlock, User, PermitApplication
 from werkzeug.urls import url_parse
 from datetime import date, datetime
 
@@ -106,12 +106,15 @@ def get_query():
         AuthorisationBlock,
         BuyerBlock,
         BankApproval,
+        SaleFinalisationBlock,
     ).outerjoin(
         AuthorisationBlock, AuthorisationBlock.previous_hash == PermitApplication.hash
     ).outerjoin(
         BuyerBlock, BuyerBlock.previous_hash == AuthorisationBlock.hash
     ).outerjoin(
         BankApproval, BankApproval.previous_hash == BuyerBlock.hash
+    ).outerjoin(
+        SaleFinalisationBlock, SaleFinalisationBlock.previous_hash == BankApproval.hash
     )
 
 
@@ -128,6 +131,7 @@ def mapper(p): return [
     get_authorisation_block(p),
     get_buyers_block(p),
     get_bank_approval_block(p),
+    get_sale_finalisation_block(p),
 ]
 
 
@@ -194,6 +198,7 @@ def approve_loan_application(hash):
     return jsonify({'hash': block.hash})
 
 
+# Block checking public
 @app.route('/api/v2/check_block/authority/<hash>', methods=['GET'])
 def check_block(hash):
     log = ['Validation results:']
@@ -207,6 +212,20 @@ def check_block(hash):
         'log': log,
         'passed': passed,
     })
+
+
+@app.route('/api/v2/loan_applications/<hash>/finalise', methods=['PUT'])
+@login_required
+def set_borrower_approval(hash):
+    content = request.get_json()
+    block = SaleFinalisationBlock(
+        previous_hash=hash,
+        timestamp=datetime.utcnow(),
+        approved=content['approved'],
+    )
+    # db.session.add(block)
+    # db.session.commit()
+    return jsonify({'hash': block.hash})
 
 
 def new_func(hash: str, log: List):
@@ -286,6 +305,19 @@ def get_bank_approval_block(p):
         result['current_address'] = block.current_address
         result['contact_number'] = block.contact_number
         result['dob'] = block.dob
+    except Exception:
+        result = {}
+    return result
+
+
+def get_sale_finalisation_block(p):
+    try:
+        block = p['SaleFinalisationBlock']
+        result = {'__type': 'SaleFinalisationBlock'}
+        result['hash'] = block.hash
+        result['previous_hash'] = block.previous_hash
+        result['timestamp'] = block.timestamp.isoformat()
+        result['approved'] = block.approval_status
     except Exception:
         result = {}
     return result

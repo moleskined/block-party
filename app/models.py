@@ -169,6 +169,30 @@ class BankApproval(db.Model):
         return sha.hexdigest()
 
 
+class SaleFinalisationBlock(db.Model):
+    hash = db.Column(db.String(50), primary_key=True)
+    previous_hash = db.Column(db.String(50), index=True)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    approved = db.Column(db.SmallInteger, nullable=False)
+
+    def __init__(self, previous_hash, timestamp, approved) -> None:
+        super().__init__()
+        self.previous_hash = previous_hash
+        self.timestamp = timestamp
+        self.approved = approved
+        self.hash = self.hash_block()
+
+    def hash_block(self) -> str:
+        sha = hasher.sha256()
+        txt = "{}{}{}".format(
+            self.previous_hash,
+            self.timestamp,
+            1 if self.approved else 0,
+        )
+        sha.update(txt.encode('utf-8'))
+        return sha.hexdigest()
+
+
 class Role(Enum):
     NONE = -1
     SELLER = 1
