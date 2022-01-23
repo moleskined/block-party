@@ -87,7 +87,7 @@ class BuyerBlock(db.Model):
     timestamp = db.Column(db.DateTime, nullable=False)
     previous_hash = db.Column(db.String(50), index=True)
     full_name = db.Column(db.String(256), nullable=False)
-    dob = db.Column(db.Date, nullable=False)
+    dob = db.Column(db.String(10), nullable=False)
     current_address = db.Column(db.String(256), nullable=False)
     contact_number = db.Column(db.String(50), nullable=False)
     employer_name = db.Column(db.String(256), nullable=False)
@@ -141,7 +141,7 @@ class BankApproval(db.Model):
     full_name = db.Column(db.String(256), nullable=False)
     current_address = db.Column(db.String(256), nullable=False)
     contact_number = db.Column(db.String(50), nullable=False)
-    dob = db.Column(db.Date, nullable=False)
+    dob = db.Column(db.String(10), nullable=False)
 
     def __init__(self, previous_hash, timestamp, approval_status, full_name, current_address, contact_number, dob) -> None:
         super().__init__()
