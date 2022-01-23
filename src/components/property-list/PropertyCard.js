@@ -19,6 +19,8 @@ export default class PropertyCard extends React.Component {
       mode,
     } = this.props;
 
+    this.downloadPdf = this.downloadPdf.bind(this);
+
     switch (mode) {
       case 'authority':
         this.approve = this.approve.bind(this);
@@ -49,6 +51,10 @@ export default class PropertyCard extends React.Component {
     this.setPropertyApproval(permitApplication.hash, permitApplication.property_address, false);
   }
 
+  downloadPdf(block) {
+    window.location = `/api/v2/permit_applications/${block.hash}/pdf`;
+  }
+
   render() {
     const {
       mode,
@@ -75,7 +81,7 @@ export default class PropertyCard extends React.Component {
               </Typography>
             </Box>
             <Box>
-              <IconButton aria-label="Download building plans">
+              <IconButton aria-label="Download building plans" onClick={() => this.downloadPdf(permitApplication)}>
                 <DownloadIcon></DownloadIcon>
               </IconButton>
             </Box>

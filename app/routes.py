@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import List
 from xmlrpc.client import DateTime
-from flask import render_template, flash, redirect, url_for, request, jsonify
+from flask import render_template, flash, redirect, url_for, request, jsonify, make_response
 from app import app, db
 from app.forms import LoginForm
 from flask_login import current_user, login_user, logout_user, login_required
@@ -226,6 +226,15 @@ def set_borrower_approval(hash):
     # db.session.add(block)
     # db.session.commit()
     return jsonify({'hash': block.hash})
+
+
+@app.route('/api/v2/permit_applications/<hash>/pdf')
+def get_pdf(hash):
+    permit_application = db.session.query(PermitApplication).filter(PermitApplication.hash == hash).first()
+    response = make_response(permit_application.building_design)
+    response.headers.set('Content-Type', 'application/pdf')
+    response.headers.set('Content-Disposition', 'attachment', filename='%s.pdf' % "Building Plans")
+    return response
 
 
 def new_func(hash: str, log: List):
