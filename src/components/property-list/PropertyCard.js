@@ -12,13 +12,13 @@ import { Box } from "@mui/system";
 import React from "react";
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import DownloadIcon from '@mui/icons-material/Download';
-import CompleteDeal from "./CompleteDeal";
 
 export default class PropertyCard extends React.Component {
   constructor(props) {
     super(props);
     const {
       mode,
+      finaliseDeal,
     } = this.props;
     this.state = {
       showing: false,
@@ -26,7 +26,7 @@ export default class PropertyCard extends React.Component {
     };
 
     this.downloadPdf = this.downloadPdf.bind(this);
-    this.verifyAndComplete = this.verifyAndComplete.bind(this);
+    this.finaliseDeal = finaliseDeal || function() {};
 
     switch (mode) {
       case 'authority':
@@ -62,10 +62,6 @@ export default class PropertyCard extends React.Component {
     window.location = `/api/v2/permit_applications/${block.hash}/pdf`;
   }
 
-  verifyAndComplete(block) {
-    this.setState({ showing: true, block })
-  }
-
   render() {
     const {
       mode,
@@ -82,10 +78,6 @@ export default class PropertyCard extends React.Component {
 
     return (
       <>
-        <CompleteDeal
-          showing={showing}
-          block={block}
-        ></CompleteDeal>
         <Card>
           <CardMedia
             component="img"
@@ -155,7 +147,7 @@ export default class PropertyCard extends React.Component {
           </CardContent>
           {mode === "seller" && bankApproval && (
             <CardActions>
-              <Button size="small" onClick={() => this.verifyAndComplete(property)}>Verify &amp; Complete…</Button>
+              <Button size="small" onClick={() => this.finaliseDeal(property)}>Verify &amp; Complete…</Button>
             </CardActions>
           )}
           {mode === "authority" && !property['AuthorisationBlock'] && (

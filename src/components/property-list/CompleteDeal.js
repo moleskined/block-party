@@ -19,7 +19,7 @@ import React from "react";
 import { Component } from "react";
 
 const DEFAULT_STATE = {
-  block: null,
+  property: null,
   activeStep: 0,
   showing: false,
   validationResult: null,
@@ -38,40 +38,39 @@ class CompleteDeal extends Component {
     super(props);
     this.state = { ...DEFAULT_STATE };
     this.handleFormNextStep = this.handleFormNextStep.bind(this);
-    this.handleClose = this.handleClose.bind(this);
     this.validateBlock = this.validateBlock.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.handleCloseDialogue = this.handleCloseDialogue.bind(this);
   }
 
   handleFormNextStep(e) {
     e.preventDefault();
-    const { activeStep, formDetails, block } = this.state;
-    // const block = block.BuyerBlock;
+    const { activeStep, formDetails } = this.state;
+    const { block, handleClose } = this.props;
+    const b = { ...block?.BankApproval || {} };
 
-    // if (activeStep === APPROVAL_STEPS.length - 1) {
-    //   return axios.put(`/api/v2/loan_blocks/${block.hash}`, formDetails)
-    //     .then(response => console.log(response.data))
-    //     .finally(this.handleClose());
-    // }
+    if (activeStep === APPROVAL_STEPS.length - 1) {
+      // Clean up after window closes
+      return handleClose({ block, formDetails }).then(() => new Promise(resolve => {
+        setTimeout(() => {
+          this.setState({ ...DEFAULT_STATE });
+          resolve();
+        }, 250);
+      }));
+    }
 
     this.setState({ activeStep: activeStep + 1 });
   }
 
-  handleClose() {
-    // this.setState({
-    //   showing: false,
-    // });
-
-    // this.loadProps();
-
-    // setTimeout(() => {
-    //   this.setState({
-    //     block: null,
-    //     activeStep: 0,
-    //     validationResult: null,
-    //     formDetails: null,
-    //   });
-    // }, 250);
+  handleCloseDialogue() {
+    const { handleClose } = this.props;
+    // Clean up after window closes
+    return handleClose().then(() => new Promise(resolve => {
+      setTimeout(() => {
+        this.setState({ ...DEFAULT_STATE });
+        resolve();
+      }, 250);
+    }));
   }
 
   handleChange(e) {
@@ -147,9 +146,7 @@ class CompleteDeal extends Component {
       formDetails,
     } = this.state;
 
-    console.log(formDetails);
-
-    return <Dialog open={showing || false}>
+    return <Dialog open={showing}>
       <DialogTitle>Finalise Deal</DialogTitle>
       <Box
         component="form"
@@ -168,7 +165,7 @@ class CompleteDeal extends Component {
           {this.getDialogDetails(activeStep)}
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={this.handleClose}>
+          <Button autoFocus onClick={this.handleCloseDialogue}>
             Cancel
           </Button>
           <Button type="submit" disabled={!validationResult}>
