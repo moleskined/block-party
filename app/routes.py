@@ -238,8 +238,8 @@ def set_borrower_approval(hash):
         timestamp=datetime.utcnow(),
         approved=content['approved'],
     )
-    # db.session.add(block)
-    # db.session.commit()
+    db.session.add(block)
+    db.session.commit()
     return jsonify({'hash': block.hash})
 
 
@@ -359,7 +359,7 @@ def get_sale_finalisation_block(p):
         result['hash'] = block.hash
         result['previous_hash'] = block.previous_hash
         result['timestamp'] = block.timestamp.isoformat()
-        result['approved'] = block.approval_status
+        result['approved'] = block.approved
     except Exception:
         result = {}
     return result

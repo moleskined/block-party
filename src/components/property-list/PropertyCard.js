@@ -12,13 +12,14 @@ import { Box } from "@mui/system";
 import React from "react";
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import DownloadIcon from '@mui/icons-material/Download';
-import CompleteDeal from "./CompleteDeal";
+import LoanApplicationStatus from "./LoanApplicationStatus";
 
 export default class PropertyCard extends React.Component {
   constructor(props) {
     super(props);
     const {
       mode,
+      finaliseDeal,
     } = this.props;
     this.state = {
       showing: false,
@@ -26,7 +27,7 @@ export default class PropertyCard extends React.Component {
     };
 
     this.downloadPdf = this.downloadPdf.bind(this);
-    this.verifyAndComplete = this.verifyAndComplete.bind(this);
+    this.finaliseDeal = finaliseDeal || function () { };
 
     switch (mode) {
       case 'authority':
@@ -62,16 +63,12 @@ export default class PropertyCard extends React.Component {
     window.location = `/api/v2/permit_applications/${block.hash}/pdf`;
   }
 
-  verifyAndComplete(block) {
-    this.setState({ showing: true, block })
-  }
-
   render() {
     const {
       mode,
       property,
     } = this.props;
-    const { 
+    const {
       showing,
       block,
     } = this.state;
@@ -79,13 +76,10 @@ export default class PropertyCard extends React.Component {
     const permitApplication = property['PermitApplication'];
     const bankApproval = property['BankApproval'];
     const buyerBlock = property['BuyerBlock'];
+    const saleFinalisationBlock = property['SaleFinalisationBlock'];
 
     return (
       <>
-        <CompleteDeal
-          showing={showing}
-          block={block}
-        ></CompleteDeal>
         <Card>
           <CardMedia
             component="img"
@@ -123,11 +117,9 @@ export default class PropertyCard extends React.Component {
               {
                 buyerBlock && <>
                   <Typography variant="subtitle1">Loan Application Status</Typography>
-                  {bankApproval ? <>
-                    <Typography variant="body2" color="text.secondary">{bankApproval.approval_status ? 'Approved by Lender' : 'Rejected by Lender'}</Typography>
-                  </> : <>
-                    <Typography variant="body2" color="text.secondary">Pending</Typography>
-                  </>}
+                  <LoanApplicationStatus
+                    block={property}
+                  ></LoanApplicationStatus>
                 </>
               }
             </>}
@@ -144,18 +136,20 @@ export default class PropertyCard extends React.Component {
                 </Box>
               </Typography>
               <Typography variant="subtitle1">Loan Application Status</Typography>
-              {bankApproval ? <>
-                <Typography variant="body2" color="text.secondary">{bankApproval.approval_status ? 'Approved by Lender' : 'Rejected by Lender'}</Typography>
-              </> : <>
-                <Typography variant="body2" color="text.secondary">Pending</Typography>
-              </>}
+              <LoanApplicationStatus
+                block={property}
+              ></LoanApplicationStatus>
             </>}
 
 
           </CardContent>
-          {mode === "seller" && bankApproval && (
+          {mode === "seller" && bankApproval && !saleFinalisationBlock && (
             <CardActions>
-              <Button size="small" onClick={() => this.verifyAndComplete(property)}>Verify &amp; Complete…</Button>
+              <Button
+                size="small"
+                onClick={() => this.finaliseDeal(property)}
+                disabled={!bankApproval.approval_status}
+              >Verify &amp; Complete…</Button>
             </CardActions>
           )}
           {mode === "authority" && !property['AuthorisationBlock'] && (
