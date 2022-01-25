@@ -16,14 +16,14 @@ class LoanApplicationStatus extends React.Component {
       return <Typography
         variant="body2"
         color="text.secondary"
-      >{saleFinalisationBlock.approved ? 'Approved by Seller' : 'Rejected by Seller'}</Typography>;
+      >{saleFinalisationBlock.approved ? '🌟 Approved by Seller' : '⛔️ Rejected by Seller'}</Typography>;
     }
 
     if (bankApproval) {
       return <Typography
         variant="body2"
         color="text.secondary"
-      >{bankApproval.approval_status ? 'Approved by Lender' : 'Rejected by Lender'}</Typography>;
+      >{bankApproval.approval_status ? 'Approved by Lender' : '⛔️ Rejected by Lender'}</Typography>;
     }
 
     return <Typography variant="body2" color="text.secondary">Pending</Typography>;

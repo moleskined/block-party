@@ -62,13 +62,18 @@ class PropertyList extends React.Component {
     this.setState({ showing: true, property });
   }
 
-  closeCompleteDetail({ formDetails, block }) {
+  closeCompleteDetail(results) {
     this.setState({ showing: false });
+    const { formDetails, block } = results || {};
 
     if (block) {
       return axios.put(`/api/v2/loan_applications/${block.BankApproval.hash}/finalise`, formDetails)
         .then(response => console.log(response.data))
-        .finally(this.loadPropertiest());
+        .finally(() => {
+          setTimeout(() => {
+            this.loadPropertiest();
+          }, 250);
+        });
     }
 
     return this.loadPropertiest();

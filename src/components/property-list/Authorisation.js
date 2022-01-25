@@ -8,7 +8,7 @@ import axios from "axios";
 import PropertyCard from "./PropertyCard";
 import { buildChain } from "../utils";
 
-const URL = '/api/permit-application';
+const URL = '/api/v2/permit-application';
 
 export default class Authorisation extends React.Component {
   constructor(props) {

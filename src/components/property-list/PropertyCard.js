@@ -107,11 +107,11 @@ export default class PropertyCard extends React.Component {
               <Typography variant="body2" color="text.secondary" component="div">
                 <Box style={{ display: 'flex', alignItems: 'center' }}>
                   <Box>
-                    <IconButton disabled={buyerBlock == null} onClick={() => navigator.clipboard.writeText(buyerBlock?.hash)} aria-label="Copy to cliboard">
+                    <IconButton disabled={buyerBlock == null} onClick={() => navigator.clipboard.writeText(buyerBlock?.index)} aria-label="Copy to cliboard">
                       <AssignmentIcon></AssignmentIcon>
                     </IconButton>
                   </Box>
-                  <Box style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>{buyerBlock?.hash || 'Available after application'}</Box>
+                  <Box style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>{buyerBlock?.index || 'Available after application'}</Box>
                 </Box>
               </Typography>
               {
@@ -128,11 +128,11 @@ export default class PropertyCard extends React.Component {
               <Typography variant="body2" color="text.secondary" component="div">
                 <Box style={{ display: 'flex', alignItems: 'center' }}>
                   <Box>
-                    <IconButton onClick={() => navigator.clipboard.writeText(permitApplication.hash)} aria-label="Copy to cliboard">
+                    <IconButton onClick={() => navigator.clipboard.writeText(permitApplication.index)} aria-label="Copy to cliboard">
                       <AssignmentIcon></AssignmentIcon>
                     </IconButton>
                   </Box>
-                  <Box style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>{permitApplication.hash}</Box>
+                  <Box style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>{permitApplication.index}</Box>
                 </Box>
               </Typography>
               <Typography variant="subtitle1">Loan Application Status</Typography>

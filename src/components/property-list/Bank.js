@@ -78,8 +78,6 @@ class Bank extends Component {
       showing: false,
     });
 
-    this.loadProps();
-
     setTimeout(() => {
       this.setState({
         application: null,
@@ -87,6 +85,7 @@ class Bank extends Component {
         validationResult: null,
         formDetails: null,
       });
+      this.loadProps();
     }, 250);
   }
 
@@ -94,15 +93,20 @@ class Bank extends Component {
     const formDetails = { ...this.state.formDetails };
     const target = e.target;
     const key = target.id || target.name;
-    formDetails[key] = target.value;
+
+    if (target.type === "radio") {
+      formDetails[key] = Boolean(Number(target.value));
+    } else {
+      formDetails[key] = target.value;
+    }
+    
     this.setState({ formDetails });
   }
 
   validateBlock(block) {
-    const url = '/api/v2/check_block/authority';
     const hash = block.hash;
 
-    return axios.get(`${url}/${hash}`).then(response => {
+    return axios.get(`/api/v2/block/${hash}/validate`).then(response => {
       const { log, passed } = response.data;
       this.setState({ validationResult: { log, passed } })
     });

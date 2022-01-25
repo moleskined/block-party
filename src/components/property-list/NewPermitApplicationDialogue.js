@@ -130,7 +130,7 @@ class NewPermitApplicationDialogue extends React.Component {
         buildingDesign,
       } = formData;
 
-      const url = '/api/permit-application';
+      const url = '/api/v2/permit-application';
       const config = {
         headers: {
           'content-type': 'multipart/form-data',
