@@ -22,6 +22,7 @@ class TopBar extends React.Component {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Properties
             </Typography>
+            <Button color="inherit" onClick={() => window.location='/logout'}>Logoff</Button>
           </Toolbar>
         </AppBar>
         <Toolbar />

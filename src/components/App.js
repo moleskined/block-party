@@ -1,9 +1,14 @@
 import React from "react";
 import { render } from "react-dom";
 import CssBaseline from '@mui/material/CssBaseline';
-import { PropertyList } from './property-list';
 import { TopBar } from './top-bar';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {
+  PropertyList,
+  Authorisation,
+  Buyers,
+  Bank,
+} from './property-list';
 
 const lightTheme = createTheme({
   palette: {
@@ -14,14 +19,25 @@ const lightTheme = createTheme({
 });
 
 class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      roleId: ROLE_ID,
+    };
+  }
+
   render() {
+    const { roleId } = this.state;
 
     return (
       <React.StrictMode>
         <ThemeProvider theme={lightTheme}>
           <CssBaseline />
           <TopBar />
-          <PropertyList></PropertyList>
+          {roleId === 1 && <PropertyList></PropertyList>}
+          {roleId === 2 && <Authorisation></Authorisation>}
+          {roleId === 3 && <Buyers></Buyers>}
+          {roleId === 4 && <Bank></Bank>}
         </ThemeProvider>
       </React.StrictMode>
     );
