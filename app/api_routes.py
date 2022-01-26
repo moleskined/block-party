@@ -234,6 +234,7 @@ def dump_block_chains():
                 result_str += "                        |\n                        |\n                        |\n"
         i += 1
 
+    print(result_str)
     response = make_response(result_str)
     response.headers.set('Content-Type', 'text/plain; charset=utf-8')
     return response
