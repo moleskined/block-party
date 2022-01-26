@@ -23,18 +23,6 @@ def get_permit_blocks():
     return jsonify(list(results))
 
 
-def log_create_block(block):
-    log = []
-    title = 'CREATING BLOCK {}'.format(block.hash)
-    border = "=" * len(title)
-    log.append(border)
-    log.append(title)
-    log.append(border)
-    str_block = str(block).split('\n')
-    for line in str_block: log.append("" + line)
-    for l in log: print(l)
-
-
 @app.route('/api/v2/permit-application', methods=['POST'])
 @login_required
 # Permit Applications: Create
@@ -230,6 +218,27 @@ def get_pdf(hash):
     return response
 
 
+@app.route('/api/v2/block/all')
+def dump_block_chains():
+    result_str = "# Blockchain Dump\n"
+    query = db.session.query(Block).all()
+    block_chains = get_block_chain_list(query)
+    i = 1
+    for block_chain in block_chains:
+        next_block = block_chain.get_head()
+        result_str += "\n## Blockchain {0}\n\n".format(i)
+        while next_block is not None:
+            result_str += "{}\n".format(next_block)
+            next_block = next_block.get_prev()
+            if next_block is not None:
+                result_str += "                        |\n                        |\n                        |\n"
+        i += 1
+
+    response = make_response(result_str)
+    response.headers.set('Content-Type', 'text/plain; charset=utf-8')
+    return response
+
+
 def get_block_validation_outcome(block_hash: str, log: List, block_chains: map):
     # Find block in chains
     for block_chain in block_chains:
@@ -321,3 +330,17 @@ def get_next_id() -> int:
     except TypeError:
         next = 0
     return next
+
+
+def log_create_block(block):
+    log = []
+    title = 'CREATING BLOCK {}'.format(block.hash)
+    border = "=" * len(title)
+    log.append(border)
+    log.append(title)
+    log.append(border)
+    str_block = str(block).split('\n')
+    for line in str_block:
+        log.append("" + line)
+    for l in log:
+        print(l)
