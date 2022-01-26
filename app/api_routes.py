@@ -23,6 +23,18 @@ def get_permit_blocks():
     return jsonify(list(results))
 
 
+def log_create_block(block):
+    log = []
+    title = 'CREATING BLOCK {}'.format(block.hash)
+    border = "=" * len(title)
+    log.append(border)
+    log.append(title)
+    log.append(border)
+    str_block = str(block).split('\n')
+    for line in str_block: log.append("" + line)
+    for l in log: print(l)
+
+
 @app.route('/api/v2/permit-application', methods=['POST'])
 @login_required
 # Permit Applications: Create
@@ -42,6 +54,8 @@ def create_permit_application():
     block = Block(datetime.utcnow(), get_next_id(), "0", d)
     db.session.add(block)
     db.session.commit()
+    log_create_block(block)
+
     return jsonify({'hash': block.hash})
 
 
@@ -59,6 +73,7 @@ def set_approval(hash):
     block = Block(datetime.utcnow(), get_next_id(), hash, d)
     db.session.add(block)
     db.session.commit()
+    log_create_block(block)
     return jsonify({'hash': block.hash})
 
 
@@ -101,6 +116,7 @@ def create_buyer_application(hash):
     )
     db.session.add(block)
     db.session.commit()
+    log_create_block(block)
     return jsonify({'hash': block.hash})
 
 
@@ -173,6 +189,7 @@ def approve_loan_application(hash):
     )
     db.session.add(block)
     db.session.commit()
+    log_create_block(block)
     return jsonify({'hash': block.hash})
 
 
@@ -194,6 +211,7 @@ def set_borrower_approval(hash):
     )
     db.session.add(block)
     db.session.commit()
+    log_create_block(block)
     return jsonify({'hash': block.hash})
 
 
