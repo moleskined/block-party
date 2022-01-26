@@ -220,6 +220,9 @@ def get_pdf(hash):
 
 @app.route('/api/v2/block/all')
 def dump_block_chains():
+    """
+    Exports all blockchains to a text file
+    """
     result_str = "# Blockchain Dump\n"
     query = db.session.query(Block).all()
     block_chains = get_block_chain_list(query)
@@ -241,7 +244,10 @@ def dump_block_chains():
 
 
 def get_block_validation_outcome(block_hash: str, log: List, block_chains: map):
-    # Find block in chains
+    '''
+    Validates a block, and checks the integrity of it and the chain of Blocks
+    that precede it.
+    '''
     for block_chain in block_chains:
         try:
             block: Block = block_chain.index['__by_hash'][block_hash]
@@ -259,8 +265,10 @@ def get_block_validation_outcome(block_hash: str, log: List, block_chains: map):
     log.append("Validating Blockchain")
     log.append("---------------------")
 
-    # Add each block to a stack for validation. We will validate
-    # each block from the first, to the requested to check hash values
+    '''
+    Add each block to a stack for validation. We will validate each block 
+    from the first, to the requested to check hash values
+    '''
     todo_stack = []
     while current_block is not None:
         todo_stack.append(current_block)
