@@ -261,9 +261,68 @@ def get_block_validation_outcome(block_hash: str, log: List, block_chains: map):
         log.append("Block not found!")
         return False
 
+    if current_block.previous_hash != "0":
+        current_block_data = json.loads(current_block.data)
+        previous_block: Block = current_block.get_prev()
+        previous_block_data = json.loads(previous_block.data)
+
+        if "AuthorisationTransaction" in current_block_data:
+            '''
+            If this block is a AuthorisationTransaction, then substituting its
+            property_address value of its predecessor and recaulculating its hash
+            should result in the same hash value and match with the current block's
+            prev_hash value.
+            '''
+            property_address_current = current_block_data['AuthorisationTransaction']['property_address']
+            previous_block_data['PermitApplicationTransaction']['property_address'] = property_address_current
+            previous_block.data = json.dumps(previous_block_data)
+            previous_block_new_hash = previous_block.hash_block()
+            log.append("")
+            log.append("Validating AuthorisationTransaction Block")
+            log.append("-----------------------------------------")
+            log.append("Checking property_address by substitution and recaulculating PermitApplicationTransaction")
+            log.append("Previous Hash: {}".format(current_block.previous_hash))
+            log.append("Recalculated Hash: {}".format(previous_block_new_hash))
+            try:
+                assert(current_block.previous_hash == previous_block_new_hash)
+                log.append("Hash is VALID!")
+            except AssertionError:
+                log.append("Hash is NOT VALID!")
+                return False
+
+        if "BankApprovalTransaction" in current_block_data:
+            '''
+            If this block is a BankApprovalTransaction, then substituting its
+            buyer's full_name, current_address, contact_number, dob values of 
+            its predecessor and recaulculating its hash should result in the 
+            same hash value and match with the current block's prev_hash value.
+            '''
+            full_name_current = current_block_data['BankApprovalTransaction']['full_name']
+            previous_block_data['BuyerTransaction']['full_name'] = full_name_current
+            current_address_current = current_block_data['BankApprovalTransaction']['current_address']
+            previous_block_data['BuyerTransaction']['current_address'] = current_address_current
+            contact_number_current = current_block_data['BankApprovalTransaction']['contact_number']
+            previous_block_data['BuyerTransaction']['contact_number'] = contact_number_current
+            dob_current = current_block_data['BankApprovalTransaction']['dob']
+            previous_block_data['BuyerTransaction']['dob'] = dob_current
+            previous_block.data = json.dumps(previous_block_data)
+            previous_block_new_hash = previous_block.hash_block()
+            log.append("")
+            log.append("Validating BankApprovalTransaction Block")
+            log.append("----------------------------------------")
+            log.append("Checking full_name, current_address, contact_number, dob values by substitution and recaulculating BuyerTransaction")
+            log.append("Previous Hash: {}".format(current_block.previous_hash))
+            log.append("Recalculated Hash: {}".format(previous_block_new_hash))
+            try:
+                assert(current_block.previous_hash == previous_block_new_hash)
+                log.append("Hash is VALID!")
+            except AssertionError:
+                log.append("Hash is NOT VALID!")
+                return False
+
     log.append("")
-    log.append("Validating Blockchain")
-    log.append("---------------------")
+    log.append("Validating Blockchain integrity")
+    log.append("===============================")
 
     '''
     Add each block to a stack for validation. We will validate each block 
@@ -273,7 +332,6 @@ def get_block_validation_outcome(block_hash: str, log: List, block_chains: map):
     while current_block is not None:
         todo_stack.append(current_block)
         current_block = current_block.get_prev()
-    log.append(str(todo_stack))
 
     prev_hash = "0"
     curr_block: Block = todo_stack.pop()
