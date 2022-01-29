@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e4400a2d48d8
-Revises: 40d1da15458a
-Create Date: 2022-01-25 23:25:28.333270
+Revision ID: b68c466c1abc
+Revises: 45c6ea2e338c
+Create Date: 2022-01-28 17:27:06.127229
 
 """
 from alembic import op
@@ -12,8 +12,8 @@ from app import models
 
 
 # revision identifiers, used by Alembic.
-revision = 'e4400a2d48d8'
-down_revision = '40d1da15458a'
+revision = 'b68c466c1abc'
+down_revision = '45c6ea2e338c'
 branch_labels = None
 depends_on = None
 
@@ -31,4 +31,5 @@ def upgrade():
 
 
 def downgrade():
-    op.execute("DELETE FROM user WHERE username IN ('seller', 'authority', 'buyer', 'bank');")
+    op.execute(
+        "DELETE FROM user WHERE username IN ('seller', 'authority', 'buyer', 'bank');")
