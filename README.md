@@ -97,7 +97,7 @@ table|user|user|8|CREATE TABLE user (
 
 ### Step 3: Running the Application
 
-*Block Party** uses [Flask](https://palletsprojects.com/p/flask/) to host the webapp and API. Most interactions will be through this interface, but Flask needs to be running to accept connections.
+**Block Party** uses [Flask](https://palletsprojects.com/p/flask/) to host the webapp and API. Most interactions will be through this interface, but Flask needs to be running to accept connections.
 
 Run the following:
 
